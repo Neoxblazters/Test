@@ -1,1 +1,1 @@
-# Sharing is caring. Everything here is free
+# Let's trade Crypto :)
