@@ -1,23 +1,17 @@
-import websocket, json, pprint, numpy, talib, datetime, sys
+import websocket, json, pprint, numpy, talib, datetime, sys, time
 
 from binance.client import Client
 
 from binance.enums import *
 
-SOCKET = "wss://stream.binance.com:9443/ws/shibusdt@kline_1m"
+SOCKET = "wss://stream.binance.com:9443/ws/btcusdt@kline_1h"
 
-PERIOD = 2
-BUY_SIG = 40
+PERIOD = 5
+BUY_SIG = 30
 SELL_SIG = 70
-TRADE_SYM = 'SHIBUSDT'
+TRADE_SYM = 'BTCUSDT'
 
 closes = []
-
-old_stdout = sys.stdout
-log_sell = open("sell_signals.log")
-log_buy = open("buy_signals.log")
-log_closes = open("closes.log")
-log_rsi = open("rsi.log")
 
 def on_close(ws):
     print('Monitoring stopped')
@@ -42,17 +36,23 @@ def on_message(ws, message):
         f = open('closes.log', 'r+')
         f.truncate(0)
         print(closes, file=open("closes.log", "a"))
-        print(latest_RSI, file=open("rsi.log", "a"))
+        print(RSI, file=open("rsi.log", "a"))
 
     if latest_RSI > SELL_SIG:
-        now = datetime.datetime.now()
-        print("Sell signal received", file=open("sell_signals.log"))
-        print(now.strftime("%Y-%m-%d %H:%M:%S", file=open("sell_signals.log")))
+        print("Sell : ",file=open("all_signals.log", "a"))
+        print(datetime.datetime.now(), file=open("all_signals.log", "a"))
+        sig = "sig.log"
+        tm = time.strftime('%a, %d %b %Y %H:%M:%S %Z(%z)')
+        with open(sig, 'w') as filetowrite:
+            filetowrite.write('Sell at'+tm)
 
     if latest_RSI < BUY_SIG:
-        now = datetime.datetime.now()
-        print("Buy signal received", file=open("buy_signals.log"))
-        print(now.strftime("%Y-%m-%d %H:%M:%S", file=open("buy_signals.log")))
+        print("Buy : ",file=open("all_signals.log", "a"))
+        print(datetime.datetime.now(), file=open("all_signals.log", "a"))
+        sig = "sig.log"
+        tm = time.strftime('%a, %d %b %Y %H:%M:%S %Z(%z)')
+        with open(sig, 'w') as filetowrite:
+            filetowrite.write('Buy at '+tm)
         
 ws = websocket.WebSocketApp(SOCKET, on_open=on_open, on_close=on_close, on_message=on_message)
 ws.run_forever()
