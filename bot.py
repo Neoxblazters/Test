@@ -4,20 +4,42 @@ from binance.client import Client
 
 from binance.enums import *
 
-SOCKET = "wss://stream.binance.com:9443/ws/btcusdt@kline_1h"
+SOCK = "wss://stream.binance.com:9443/ws/btcusdt@kline_1m"
 
-PERIOD = 5
-BUY_SIG = 30
-SELL_SIG = 70
-TRADE_SYM = 'BTCUSDT'
+PR = 2
+B_SIG = 50
+S_SIG = 53
+T_SYM = 'BTCUSDT'
 
 closes = []
-
-def on_close(ws):
-    print('Monitoring stopped')
+in_pos = True
 
 def on_open(ws):
     print('Monitoring started')
+
+def S_MESSAGE():
+    try:
+        print("Sell : "+datetime.datetime.now(),file=open("signals.log", "a"))
+    except Exception as e:
+        print("An error occured -{}".format(e))
+        return False
+    return True
+
+def B_MESSAGE():
+    try:
+        print("Buy : "+datetime.datetime.now(),file=open("signals.log", "a"))
+    except Exception as e:
+        print("An error occured -{}".format(e))
+        return False
+    return True
+
+def C_POS_F():
+    global in_pos
+    in_pos = False
+
+def C_POS_T():
+    global in_pos
+    in_pos = True
 
 def on_message(ws, message):
     json_message = json.loads(message)
@@ -29,30 +51,32 @@ def on_message(ws, message):
         closes.append(float(close))
         print(closes, file=open("closes.log", "a"))
 
-    if len(closes) > PERIOD:
+    if len(closes) > PR:
         np_closes = numpy.array(closes)
-        RSI = talib.RSI(np_closes, PERIOD)
-        latest_RSI = RSI[-1]
+        R = talib.RSI(np_closes, PR)
+        L_R = R[-1]
         f = open('closes.log', 'r+')
         f.truncate(0)
-        print(closes, file=open("closes.log", "a"))
-        print(RSI, file=open("rsi.log", "a"))
+        print(R, file=open("rsi.log", "a"))
+        print(L_R)
 
-    if latest_RSI > SELL_SIG:
-        print("Sell : ",file=open("all_signals.log", "a"))
-        print(datetime.datetime.now(), file=open("all_signals.log", "a"))
-        sig = "sig.log"
-        tm = time.strftime('%a, %d %b %Y %H:%M:%S %Z(%z)')
-        with open(sig, 'w') as filetowrite:
-            filetowrite.write('Sell at'+tm)
+    if L_R > S_SIG:
+        if in_pos:
+            if is_candle_closed:
+                S_COMP = S_MESSAGE()
+                if S_COMP:
+                    C_POS_F()
+        else:
+            print("Not ready to Sell")
 
-    if latest_RSI < BUY_SIG:
-        print("Buy : ",file=open("all_signals.log", "a"))
-        print(datetime.datetime.now(), file=open("all_signals.log", "a"))
-        sig = "sig.log"
-        tm = time.strftime('%a, %d %b %Y %H:%M:%S %Z(%z)')
-        with open(sig, 'w') as filetowrite:
-            filetowrite.write('Buy at '+tm)
+    if L_R < B_SIG:
+        if in_pos:
+            print("Not ready to Buy")
+        else:
+            if is_candle_closed:
+                B_COMP = B_MESSAGE()
+                if B_COMP:
+                    C_POS_T()
         
-ws = websocket.WebSocketApp(SOCKET, on_open=on_open, on_close=on_close, on_message=on_message)
+ws = websocket.WebSocketApp(SOCK, on_open=on_open, on_message=on_message)
 ws.run_forever()

@@ -27,16 +27,36 @@ async def on_ready():
     )
 
     stats.start()
+    closes.start()
+    rsi.start()
 
 
-@tasks.loop(minutes=30)
+@tasks.loop(minutes=1)
 async def stats():
+    channel = client.get_channel(905445834592747600)
+    name = "/home/miner/dev/Crypto/sig.log"
+    with open(name, 'r') as f:
+        f = f.readlines()
+        #await channel.send("Monitoring running. BTC/USDT - Binance - kline: 1 minute")
+        await channel.send(f)
+
+@tasks.loop(minutes=20)
+async def closes():
     channel = client.get_channel(905445834592747600)
     name = "/home/miner/dev/Crypto/closes.log"
     with open(name, 'r') as f:
         f = f.readlines()[-1]
-        await channel.send("BTC closing values for the last 6 hours : ")
         await channel.send(f)
+
+@tasks.loop(minutes=30)
+async def rsi():
+    channel = client.get_channel(905445834592747600)
+    name = "/home/miner/dev/Crypto/rsi.log"
+    with open(name, 'r') as f:
+        f = f.readlines()[-1]
+        await channel.send("Below is the latest RSI values")
+        await channel.send(f)
+
 
 #name = "/home/miner/dev/Crypto/closes.log"
 
