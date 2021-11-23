@@ -19,7 +19,8 @@ def on_open(ws):
 
 def S_MESSAGE():
     try:
-        print("Sell : "+datetime.datetime.now(),file=open("signals.log", "a"))
+        print("Sell : ",file=open("signals.log", "a"))
+        print(datetime.datetime.now(), file=open("signals.log", "a"))
     except Exception as e:
         print("An error occured -{}".format(e))
         return False
@@ -27,7 +28,8 @@ def S_MESSAGE():
 
 def B_MESSAGE():
     try:
-        print("Buy : "+datetime.datetime.now(),file=open("signals.log", "a"))
+        print("Buy : ",file=open("signals.log", "a"))
+        print(datetime.datetime.now(), file=open("signals.log", "a"))
     except Exception as e:
         print("An error occured -{}".format(e))
         return False
