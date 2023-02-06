@@ -1,1 +1,1 @@
-# Let's trade Crypto :)
+#
