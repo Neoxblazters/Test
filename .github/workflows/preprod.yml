@@ -1,0 +1,14 @@
+name: deploy
+
+on:
+  push:
+    branches:
+      - "master"
+
+jobs:
+  deploy:
+    uses: 772424/actions/.github/workflows/deploy-current-branch.yml@main
+    with:
+      environment: preproduction
+      deploy_path: /home/david/772424/dev/preprod/
+    secrets: inherit
